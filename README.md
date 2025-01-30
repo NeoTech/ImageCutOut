@@ -1,3 +1,13 @@
+# Prequsites
+This was made to proof out if we could make a simple tooling for converting images to diecut files for print.
+
+## 1: Install Rust
+See: https://rustup.rs/
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+```
+
 # Steps to run
 ## 1: Build
 ```bash
@@ -20,5 +30,6 @@ cargo run -- -i padded_waifu.png -p
 ```
 
 ###
+Rust code is written with Copilot and Deepseek R1 by [NeoTech](https://github.com/neotech/)
 Potrace is a tool that can be downloaded from [here](https://potrace.sourceforge.net/) 
 Copyright © 2001-2019 Peter Selinger.
