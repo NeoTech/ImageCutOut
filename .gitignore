@@ -1,0 +1,4 @@
+/target
+potrace.exe
+*.bmp
+*.svg

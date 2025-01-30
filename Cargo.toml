@@ -1,0 +1,9 @@
+[package]
+name = "cutout"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+image = { version = "0.25.5", features = ["png"] }
+clap = { version = "4.5.24", features = ["derive"] }
+imageproc = "0.25.0"
