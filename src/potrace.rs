@@ -3,7 +3,7 @@
 #![allow(dead_code)]
 
 use std::collections::HashMap;
-use image::DynamicImage;
+use image::{DynamicImage, GenericImageView, ImageReader};
 
 // Structure to hold the parameters
 #[derive(Debug, Default)]
@@ -14,17 +14,20 @@ struct Info {
     optcurve: bool,
     alphamax: f64,
     opttolerance: f64,
+    control_points: Vec<(f64, f64)>, // Add this line to include the control_points field
 }
 
 // Create a global instance of the Info struct
 pub struct Potrace {
     info: Info,
+    paths: Vec<Path>, // Add this line to include the paths field
 }
 
 impl Potrace {
     pub fn new() -> Self {
         Potrace {
             info: Info::default(),
+            paths: Vec::new(), // Initialize the paths field
         }
     }
 
@@ -77,23 +80,56 @@ impl Potrace {
     }
 
     // Main processing methods
-    fn bm_to_pathlist(&self, image: &DynamicImage) {
-        // TODO: Convert bitmap data into list of paths
-        // TODO: Identify connected components in the bitmap.
-        // TODO: Trace the boundaries of these components.
-        // TODO: Convert the traced boundaries into vector paths (lines and curves).
-        // TODO: Store the paths in a suitable data structure (e.g., a member variable of the Potrace struct).
+    fn bm_to_pathlist(&mut self, image: &DynamicImage) {
+        // Convert bitmap data into list of paths
+        let (width, height) = image.dimensions();
+        let mut visited = vec![vec![false; height as usize]; width as usize];
+        let mut paths = Vec::new();
+
+        for y in 0..height {
+            for x in 0..width {
+                if !visited[x as usize][y as usize] && is_black(image.get_pixel(x, y)) {
+                    let path = trace_boundary(image, x, y, &mut visited);
+                    paths.push(path);
+                }
+            }
+        }
+
+        self.paths = paths;
     }
 
-    fn calc_sums(&self) {
-        // TODO: Initialize variables to store sums and control points.   
-        // TODO: Iterate over each path in the list of paths.
-        // TODO: For each path, calculate the sums needed for control point calculation.
-        // TODO: Store the calculated control points in a suitable data structure.
-        // TODO: Handle edge cases (e.g., very short paths).
+    fn calc_sums(&mut self) {
+        // Initialize variables to store sums and control points
+        let mut control_points = Vec::new();
+
+        // Iterate over each path in the list of paths
+        for path in &self.paths {
+            let mut sum_x = 0.0;
+            let mut sum_y = 0.0;
+            let mut count = 0;
+
+            // For each path, calculate the sums needed for control point calculation
+            for &(x, y) in &path.points {
+                sum_x += x;
+                sum_y += y;
+                count += 1;
+            }
+
+            // Calculate the average (control point)
+            if count > 0 {
+                let avg_x = sum_x / count as f64;
+                let avg_y = sum_y / count as f64;
+                control_points.push((avg_x, avg_y));
+            }
+        }
+
+        // Store the calculated control points in a suitable data structure
+        self.info.control_points = control_points;
+
+        // TODO: Handle edge cases (e.g., very short paths)
     }
 
-    fn calc_lon(&self) {
+    fn calc_lon(&mut self) {
         // TODO: Initialize variables to store the lengths of segments.
         // TODO: Iterate over each path in the list of paths.
         // TODO: For each path, compute the length of each segment.
@@ -101,7 +137,7 @@ impl Potrace {
         // TODO: Handle edge cases (e.g., very short segments).
     }
 
-    fn best_polygon(&self) {
+    fn best_polygon(&mut self) {
         // TODO: Initialize variables needed for finding the optimal polygon representation.
         // TODO: Iterate over each path in the list of paths.
         // TODO: For each path, evaluate different polygon representations.
@@ -109,7 +145,7 @@ impl Potrace {
         // TODO: Store the optimal polygon representations in a suitable data structure.
     }
 
-    fn adjust_vertices(&self) {
+    fn adjust_vertices(&mut self) {
         // TODO: Initialize variables needed for adjusting vertex positions.
         // TODO: Iterate over each path in the list of paths.
         // TODO: For each path, fine-tune the positions of the vertices.
@@ -117,7 +153,7 @@ impl Potrace {
         // TODO: Handle edge cases (e.g., very close vertices).
     }
 
-    fn smooth(&self) {
+    fn smooth(&mut self) {
         // TODO: Initialize variables needed for smoothing the paths.
         // TODO: Iterate over each path in the list of paths.
         // TODO: For each path, apply a smoothing algorithm to reduce sharp angles and irregularities.
@@ -125,7 +161,7 @@ impl Potrace {
         // TODO: Handle edge cases (e.g., very short paths).
     }
 
-    fn opti_curve(&self) {
+    fn opti_curve(&mut self) {
         // TODO: Initialize variables needed for optimizing curve segments.
         // TODO: Iterate over each path in the list of paths.
         // TODO: For each path, apply an optimization algorithm to reduce the complexity of the curve segments.
@@ -134,6 +170,16 @@ impl Potrace {
     }
 }
 
+// Define the Path struct
+struct Path {
+    points: Vec<(f64, f64)>,
+}
+
+impl Path {
+    fn new() -> Self {
+        Path { points: Vec::new() }
+    }
+}
 struct Curve {
     // Define the fields for the Curve struct
     // For example:
@@ -142,7 +188,7 @@ struct Curve {
 }
 
 impl Curve {
-    fn bezier(&self, i: usize) -> String {
+    fn bezier(&mut self, i: usize) -> String {
         // TODO: Initialize variables needed for creating Bezier curves.
         // TODO: Retrieve the control points for the given index `i`.
         // TODO: Use the control points to calculate the Bezier curve.
@@ -151,7 +197,7 @@ impl Curve {
         "".to_string()
     }
 
-    fn segment(&self, i: usize) -> String {
+    fn segment(&mut self, i: usize) -> String {
         // TODO: Initialize variables needed for creating line segments.
         // TODO: Retrieve the points for the given index `i`.
         // TODO: Create line segments between the retrieved points.
@@ -160,7 +206,7 @@ impl Curve {
         "".to_string()
     }
 
-    fn path(&self) -> String {
+    fn path(&mut self) -> String {
         // TODO: Initialize variables needed for generating the path string.
         // TODO: Iterate over each segment in the given curve.
         // TODO: For each segment, generate the corresponding SVG path string (either line or Bezier curve).
@@ -168,6 +214,31 @@ impl Curve {
         // TODO: Return the generated complete SVG path string.
         "".to_string()
     }
+}
+
+fn is_black(pixel: image::Rgba<u8>) -> bool {
+    pixel[0] == 0 && pixel[1] == 0 && pixel[2] == 0 && pixel[3] != 0
+}
+
+// Helper function to trace the boundary of a connected component
+fn trace_boundary(image: &DynamicImage, start_x: u32, start_y: u32, visited: &mut Vec<Vec<bool>>) -> Path {
+    let mut path = Path::new();
+    let mut stack = vec![(start_x, start_y)];
+    let directions = [(0, 1), (1, 0), (0, -1), (-1, 0)];
+
+    while let Some((x, y)) = stack.pop() {
+        if x < image.width() && y < image.height() && !visited[x as usize][y as usize] && is_black(image.get_pixel(x, y)) {
+            visited[x as usize][y as usize] = true;
+            path.points.push((x as f64, y as f64));
+
+            for &(dx, dy) in &directions {
+                let nx = (x as i32 + dx) as u32;
+                let ny = (y as i32 + dy) as u32;
+                stack.push((nx, ny));
+            }
+        }
+    }
+    path
 }
 
 // Utility functions

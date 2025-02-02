@@ -1,4 +1,3 @@
-#![allow(unused_imports)]
 mod potrace;
 
 use clap::Parser;
@@ -12,9 +11,9 @@ struct Args {
     image: String,
     #[arg(short, long, default_value_t = 1)]
     count: usize,
-    #[arg(short, long, default_value_t = false)]
+    #[arg(long, default_value_t = false)]
     png2bmp: bool,
-    #[arg(short, long, default_value_t = false)]
+    #[arg(long, default_value_t = false)]
     png2svg: bool,
     #[arg(long, default_value = "minority")]
     turnpolicy: String,
@@ -51,7 +50,7 @@ fn main() {
         parameters.insert("alphamax", alphamax.as_str());
         parameters.insert("opttolerance", opttolerance.as_str());
         potrace.set_parameter(parameters);
-        potrace.process();
+        potrace.process(image);
     } else {
         // Runs binary mask creation and padding.
         pad_image(create_binarymask(image.clone()), args.count).save(format!("padded_{}", args.image)).unwrap();
