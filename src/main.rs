@@ -1,5 +1,9 @@
+#![allow(unused_imports)]
+mod potrace;
+
 use clap::Parser;
 use image::{GenericImageView, ImageReader};
+use std::collections::HashMap;
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
@@ -10,6 +14,18 @@ struct Args {
     count: usize,
     #[arg(short, long, default_value_t = false)]
     png2bmp: bool,
+    #[arg(short, long, default_value_t = false)]
+    png2svg: bool,
+    #[arg(long, default_value = "minority")]
+    turnpolicy: String,
+    #[arg(long, default_value_t = 2)]
+    turdsize: u32,
+    #[arg(long, default_value_t = true)]
+    optcurve: bool,
+    #[arg(long, default_value_t = 1.0)]
+    alphamax: f64,
+    #[arg(long, default_value_t = 0.2)]
+    opttolerance: f64,
 }
 
 fn main() {
@@ -19,7 +35,25 @@ fn main() {
     if args.png2bmp {
         // Runs png to BMP and changes file ending to bmp.
         png_to_bmp(image.clone()).save(format!("converted_{}.bmp", &args.image[..args.image.len() - 4])).unwrap();
+    } else if args.png2svg {
+        // Runs png to SVG conversion.
+        let mut potrace = potrace::Potrace::new();
+        let turnpolicy = args.turnpolicy.as_str();
+        let turdsize = args.turdsize.to_string();
+        let optcurve = args.optcurve.to_string();
+        let alphamax = args.alphamax.to_string();
+        let opttolerance = args.opttolerance.to_string();
+
+        let mut parameters = HashMap::new();
+        parameters.insert("turnpolicy", turnpolicy);
+        parameters.insert("turdsize", turdsize.as_str());
+        parameters.insert("optcurve", optcurve.as_str());
+        parameters.insert("alphamax", alphamax.as_str());
+        parameters.insert("opttolerance", opttolerance.as_str());
+        potrace.set_parameter(parameters);
+        potrace.process();
     } else {
+        // Runs binary mask creation and padding.
         pad_image(create_binarymask(image.clone()), args.count).save(format!("padded_{}", args.image)).unwrap();
     }   
 }
