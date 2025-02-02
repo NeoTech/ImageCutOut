@@ -20,10 +20,13 @@ fn main() {
     let args = Args::parse();
     println!("Processing {}...", args.image);
     let image = ImageReader::open(args.image.clone()).unwrap().decode().unwrap();
+/*
     if args.png2bmp {
         // Runs png to BMP and changes file ending to bmp.
         png_to_bmp(image.clone()).save(format!("converted_{}.bmp", &args.image[..args.image.len() - 4])).unwrap();
-    } else if args.png2svg {
+    } else
+*/
+    if args.png2svg {
         let config = Config::default();
         convert_image_to_svg(Path::new(&args.image), Path::new("output.svg"), config).unwrap();
     } else {
@@ -58,7 +61,7 @@ fn create_binarymask(image: image::DynamicImage) -> image::DynamicImage {
     }
     image::DynamicImage::ImageRgba8(new_image)
 }
-
+/*
 fn png_to_bmp(image: image::DynamicImage) -> image::DynamicImage {
     // Reads a PNG file and converts transparent pixels to white and saves it as a bmp file.
     let (width, height) = image.dimensions();
@@ -75,6 +78,7 @@ fn png_to_bmp(image: image::DynamicImage) -> image::DynamicImage {
     }
     image::DynamicImage::ImageRgba8(new_image)
 }
+*/
 
 fn pad_image(image: image::DynamicImage, margin: usize) -> image::DynamicImage {
     let (width, height) = image.dimensions();
