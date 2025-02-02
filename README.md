@@ -16,12 +16,12 @@ cargo build
 
 ## 2: Run
 ```bash
-cargo run -- -i waifu.png -c 10
+cargo run -- -i waifu.png -c 10 -o waifu_out.png
 ```
 
 ## 3: Convert
 ```bash
-cargo run -- -i padded_waifu.png --png2svg
+cargo run -- -i waifu_out.png --png2svg -o waifu_out.svg
 ```
 
 
