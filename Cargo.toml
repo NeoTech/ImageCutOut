@@ -7,3 +7,4 @@ edition = "2021"
 image = { version = "0.25.5", features = ["png"] }
 clap = { version = "4.5.24", features = ["derive"] }
 imageproc = "0.25.0"
+vtracer = "0.6.3"
