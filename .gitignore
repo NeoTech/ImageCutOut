@@ -1,5 +1,6 @@
 /target
 potrace.exe
 src/potrace.js
+src/potrace.rs
 *.bmp
 *.svg
