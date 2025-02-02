@@ -6,7 +6,7 @@ use vtracer::{Config, convert_image_to_svg};
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
 struct Args {
-    #[arg(short, long)]
+    #[arg(short, long, required = true)]
     image: String,
     #[arg(short, long, default_value_t = 1)]
     count: usize,
@@ -14,6 +14,8 @@ struct Args {
     // png2bmp: bool,
     #[arg(long, default_value_t = false)]
     png2svg: bool,
+    #[arg(short, long, required = true)]
+    output: String
 }
 
 fn main() {
@@ -28,10 +30,10 @@ fn main() {
 */
     if args.png2svg {
         let config = Config::default();
-        convert_image_to_svg(Path::new(&args.image), Path::new("output.svg"), config).unwrap();
+        convert_image_to_svg(Path::new(&args.image), Path::new(&args.output), config).unwrap();
     } else {
         // Runs binary mask creation and padding.
-        pad_image(create_binarymask(image.clone()), args.count).save(format!("padded_{}", args.image)).unwrap();
+        pad_image(create_binarymask(image.clone()), args.count).save(&args.output).unwrap();
     }   
 }
 
